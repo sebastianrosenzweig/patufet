@@ -3,21 +3,33 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Description
-Develop the software for a voice assistant designed for interaction in Catalan.
+Development of a Catalan-language voice assistant utilizing a distributed architecture across two devices.
 
-**Hardware:**
-- **Processor:** Raspberry Pi 4 (4GB) - Primary logic and processing (running Python 3.13).
-- **Input:** ReSpeaker Core 1.0 - Dedicated for recording and wake word detection (running Python 2.7.9).
-
-Both devices are connected to the same wifi network.
+**Hardware & Software Constraints:**
+- **ReSpeaker Core 1.0:** Handles recording and Wake Word Detection (WWD). Runs **Python 2.7.9**.
+- **Raspberry Pi 4 (4GB):** Handles main processing and logic. Runs **Python 3.13**.
+- **Connectivity:** Both devices communicate over the same local Wi-Fi network.
 
 ## Architecture
-The ReSpeaker continuously records audio and checks for the wake word. Once the wake word is detected, the ReSpeaker device records the voice command and sends the audio to the Raspberry Pi. The Raspberry Pi runs a server that receives the audio and does the voice processing.
+The system is designed to offload heavy processing from the input device:
+1. **Capture (ReSpeaker):** Continuous audio monitoring for a wake word.
+2. **Trigger:** Upon detection, the ReSpeaker records the subsequent command.
+3. **Relay:** The audio is transmitted to the Raspberry Pi.
+4. **Processing (Raspberry Pi):** A server on the Pi receives the audio, handles Speech-to-Text (STT), and processes the intent.
 
-## Steps
-We first develop the software for the ReSpeaker, then the software for the Raspberry Pi.
+## Development Setup
+To develop the ReSpeaker-side logic, install the custom library:
+```bash
+cd respeaker/respeaker_python_library
+pip install .
+```
+**Dependencies:** `pocketsphinx`, `pyaudio`, `webrtcvad`, `requests`.
 
-## Rules
-- No audio is allowed to leave the local network.
-- Always plan first and ask in case of doubts before you execute.
-- Create git commits with meaningful commit messages for authorized changes by me.
+## Common Commands
+- **Run Examples:**
+  - Examples are located in `respeaker/respeaker_python_library/examples/`.
+  - To run an example: `python3 respeaker/respeaker_python_library/examples/[filename].py`
+
+## Project Structure
+- `respeaker/`: Contains the custom library for ReSpeaker interaction and associated scripts.
+- `raspberry/`: Reserved for the Raspberry Pi server and logic implementation.
