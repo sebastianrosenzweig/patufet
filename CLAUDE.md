@@ -14,6 +14,9 @@ Both devices are connected to the same wifi network.
 ## Architecture
 The ReSpeaker continuously records audio and checks for the wake word. Once the wake word is detected, the ReSpeaker device records the voice command and sends the audio to the Raspberry Pi. The Raspberry Pi runs a server that receives the audio and does the voice processing.
 
+## Steps
+We first develop the software for the ReSpeaker, then the software for the Raspberry Pi.
+
 ## Rules
 - No audio is allowed to leave the local network.
 - Always plan first and ask in case of doubts before you execute.

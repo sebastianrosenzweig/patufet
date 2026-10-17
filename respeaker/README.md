@@ -1,9 +1,9 @@
 # Installation instructions
 
-1. Copy all files in this directory to the ReSpeaker under `~/`
+1. Copy all files in this directory to the ReSpeaker under `/root/`
 2. Install the customised Python library:
    ```
-   cd ~/respeaker_python_library 
+   cd /root/respeaker_python_library 
    pip install .
    ```
 3. Set up recording to start automatically after boot:
