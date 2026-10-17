@@ -1,0 +1,3 @@
+[submodule "respeaker/respeaker_python_library"]
+	path = respeaker/respeaker_python_library
+	url = git@github.com:sebastianrosenzweig/respeaker_python_library.git
