@@ -9,6 +9,9 @@ dependencies = [
     "uvicorn",
     "requests",
     "python-multipart",
+    "faster-whisper",
+    "av < 19.0.0",
+    "pytest"
 ]
 
 [build-system]

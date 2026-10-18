@@ -1,10 +1,12 @@
+import asyncio
+from transcription import transcribe_audio, save_transcription
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-import datetime
 import os
 import wave
+
 
 app = FastAPI()
 
@@ -30,9 +32,7 @@ async def receive_audio(request: Request):
     if not body:
         return JSONResponse(content={"error": "No data received"}, status_code=400)
 
-    # Generate filename with UTC timestamp
-    now = datetime.datetime.utcnow()
-    filename = f"{now.strftime('%Y%m%d_%H%M%S_%f')[:23]}.wav"
+    filename = "tmp.wav"
     filepath = os.path.join(DATA_DIR, filename)
 
     # Save the data as a valid WAV file
@@ -44,6 +44,14 @@ async def receive_audio(request: Request):
         wav_file.writeframes(body)
 
     print(f"Saved audio to {filepath}")
+
+    # Trigger transcription
+    text = await asyncio.to_thread(transcribe_audio, filepath)
+    if text:
+        save_transcription(text, filepath)
+        print(f"Transcription finished: {text}")
+    else:
+        print("Transcription produced no text.")
 
     # Return the success message
     return JSONResponse(content={"status": "command processed"})
