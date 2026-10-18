@@ -53,6 +53,8 @@ async def receive_audio(request: Request):
     else:
         print("Transcription produced no text.")
 
+    # TODO: LLM and Text-to-speech processing
+
     # Return the success message
     return JSONResponse(content={"status": "command processed"})
 
