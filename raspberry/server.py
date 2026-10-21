@@ -1,5 +1,7 @@
 import asyncio
-from transcription import transcribe_audio, save_transcription
+from transcription import transcribe_audio
+from llm import get_llm_response
+from tts import synthesize
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -48,12 +50,16 @@ async def receive_audio(request: Request):
     # Trigger transcription
     text = await asyncio.to_thread(transcribe_audio, filepath)
     if text:
-        save_transcription(text, filepath)
         print(f"Transcription finished: {text}")
+
+        response = await asyncio.to_thread(get_llm_response, text)
+        print(f"Response: {response}")
+
+        audio = synthesize(response)
+        print(f"Synthesis finished!")
+
     else:
         print("Transcription produced no text.")
-
-    # TODO: LLM and Text-to-speech processing
 
     # Return the success message
     return JSONResponse(content={"status": "command processed"})

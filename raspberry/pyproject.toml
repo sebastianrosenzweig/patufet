@@ -12,7 +12,9 @@ dependencies = [
     "faster-whisper",
     "av < 19.0.0",
     "pytest",
-    "llama-cpp-python"
+    "llama-cpp-python",
+    "soundfile",
+    "piper-tts"
 ]
 
 [build-system]
