@@ -11,7 +11,8 @@ dependencies = [
     "python-multipart",
     "faster-whisper",
     "av < 19.0.0",
-    "pytest"
+    "pytest",
+    "llama-cpp-python"
 ]
 
 [build-system]
