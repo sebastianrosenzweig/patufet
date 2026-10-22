@@ -2,6 +2,11 @@ from pathlib import Path
 
 import numpy as np
 from piper import PiperVoice
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 model = Path("models/ca_ES-upc_pau-x_low.onnx")
 
@@ -35,5 +40,3 @@ def synthesize(text: str) -> tuple[np.ndarray, int]:
     audio_float = audio.astype(np.float32) / 32768.0
 
     return audio_float, sample_rate
-
-

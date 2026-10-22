@@ -7,8 +7,15 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
+import numpy as np
+import io
+from fastapi.responses import Response
+import logging
 import wave
 
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -34,32 +41,37 @@ async def receive_audio(request: Request):
     if not body:
         return JSONResponse(content={"error": "No data received"}, status_code=400)
 
-    filename = "tmp.wav"
-    filepath = os.path.join(DATA_DIR, filename)
-
-    # Save the data as a valid WAV file
+    # Convert to numpy array
     # The ReSpeaker provides 16000Hz, 16-bit (2 bytes), Mono (1 channel)
-    with wave.open(filepath, 'wb') as wav_file:
-        wav_file.setnchannels(1)
-        wav_file.setsampwidth(2)  # 2 bytes for 16-bit
-        wav_file.setframerate(16000)
-        wav_file.writeframes(body)
-
-    print(f"Saved audio to {filepath}")
+    audio_data = np.frombuffer(body, dtype=np.int16)
+    audio_float = audio_data.astype(np.float32) / 32768.0
 
     # Trigger transcription
-    text = await asyncio.to_thread(transcribe_audio, filepath)
+    text = await asyncio.to_thread(transcribe_audio, audio_float)
     if text:
-        print(f"Transcription finished: {text}")
+        logger.info(f"Transcription finished: {text}")
 
         response = await asyncio.to_thread(get_llm_response, text)
-        print(f"Response: {response}")
+        logger.info(f"Response: {response}")
 
-        audio = synthesize(response)
-        print(f"Synthesis finished!")
+        audio, sample_rate = synthesize(response)
+        logger.info("Synthesis finished!")
+
+        # Convert to int16 bytes
+        audio_int16 = (audio * 32768.0).astype(np.int16)
+
+        # Create WAV file in memory
+        buffer = io.BytesIO()
+        with wave.open(buffer, 'wb') as wav_file:
+            wav_file.setnchannels(1)
+            wav_file.setsampwidth(2)
+            wav_file.setframerate(sample_rate)
+            wav_file.writeframes(audio_int16.tobytes())
+
+        return Response(content=buffer.getvalue(), media_type="audio/wav")
 
     else:
-        print("Transcription produced no text.")
+        logger.info("Transcription produced no text.")
 
     # Return the success message
     return JSONResponse(content={"status": "command processed"})

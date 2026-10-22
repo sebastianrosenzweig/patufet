@@ -1,5 +1,11 @@
 import os
+import numpy as np
 from faster_whisper import WhisperModel
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Configuration for the transcription model
 MODEL_SIZE = "tiny" # "projecte-aina/faster-whisper-large-v3-ca-3catparla"
@@ -10,12 +16,12 @@ COMPUTE_TYPE = "int8"
 # We load it once globally to avoid the overhead of reloading on every request
 model = WhisperModel(MODEL_SIZE, device=DEVICE, compute_type=COMPUTE_TYPE)
 
-def transcribe_audio(file_path: str) -> str:
+def transcribe_audio(source: str | np.ndarray) -> str:
     """
-    Transcribes the audio file provided in file_path.
+    Transcribes the audio source provided.
     Returns the transcribed text.
     """
-    segments, _ = model.transcribe(file_path, beam_size=5, language="ca")
+    segments, _ = model.transcribe(source, beam_size=5, language="ca")
     return "".join([segment.text for segment in segments]).strip()
 
 def save_transcription(text: str, file_path: str):
@@ -36,5 +42,5 @@ def save_transcription(text: str, file_path: str):
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(text)
 
-    print(f"Saved transcription to {filepath}")
+    logger.info(f"Saved transcription to {filepath}")
     return filepath
