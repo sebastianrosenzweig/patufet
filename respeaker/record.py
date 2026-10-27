@@ -1,18 +1,27 @@
 import io
 import logging
+import pyaudio
+import subprocess
 import time
 import requests
 from threading import Thread, Event
 import wave
 from respeaker import Microphone
-from respeaker.player import Player
 
 
 SERVER_IP_PORT = 'http://192.168.3.126:8000/'
+loglevel = logging.DEBUG
 
 def task(quit_event):
-    mic = Microphone(quit_event=quit_event)
-    player = Player()
+    logging.getLogger().setLevel(loglevel)
+    logging.info("Starting thread...")
+
+    while True:
+        try:
+            mic = Microphone(quit_event=quit_event)
+            break
+        except:
+            time.sleep(1)
     logging.info("Start recording...")
 
     while not quit_event.is_set():
@@ -33,14 +42,48 @@ def task(quit_event):
                     if response.status_code == 200:
                         logging.debug('Server: Command processed')
                         buffer = io.BytesIO(response.content)
+                        wav_file = wave.open(buffer, 'rb')
 
-                        with wave.open(buffer, 'rb') as wav_file:
+                        p = pyaudio.PyAudio()
+                        stream = None
+
+                        try:
                             sample_rate = wav_file.getframerate()
                             n_channels = wav_file.getnchannels()
                             samp_width = wav_file.getsampwidth()
 
-                        print(sample_rate)
-                        player._play(response.content, sample_rate, n_channels, samp_width, False)
+                            stream = p.open(
+                                format=p.get_format_from_width(samp_width),
+                                channels=n_channels,
+                                rate=sample_rate,
+                                output=True
+                            )
+
+                            # Hack: Play silence before and after for response to be fully played back
+                            if samp_width == 1:
+                                silence = b'\x80' * (sample_rate * n_channels * samp_width)
+                            else:
+                                silence = b'\x00' * (sample_rate * n_channels * samp_width)
+
+                            # Read and play audio in chunks
+                            chunk_size = 1024
+                            data = wav_file.readframes(chunk_size)
+
+                            stream.write(silence)
+                            while data:
+                                stream.write(data)
+                                data = wav_file.readframes(chunk_size)
+
+                            stream.write(silence)
+
+                        finally:
+                            if stream is not None:
+                                stream.stop_stream()
+                                stream.close()
+
+                            p.terminate()
+                            wav_file.close()
+                            buffer.close()
                     else:
                         logging.debug('Server response: %s' % response.text)
                 except Exception as e:
@@ -49,7 +92,7 @@ def task(quit_event):
                 logging.debug('No data captured')
 
 def main():
-    logging.basicConfig(level=logging.DEBUG, force=True)
+    logging.basicConfig(level=loglevel)
 
     quit_event = Event()
     thread = Thread(target=task, args=(quit_event,))
