@@ -8,7 +8,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-model = Path("models/ca_ES-upc_pau-x_low.onnx")
+model = Path("models/ca_ES-upc_ona-medium.onnx")
 
 voice = PiperVoice.load(str(model))
 sample_rate = voice.config.sample_rate

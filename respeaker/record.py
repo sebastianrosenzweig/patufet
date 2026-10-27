@@ -1,7 +1,6 @@
 import io
 import logging
 import pyaudio
-import subprocess
 import time
 import requests
 from threading import Thread, Event
