@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Configuration for the transcription model
-MODEL_SIZE = "tiny" # "projecte-aina/faster-whisper-large-v3-ca-3catparla"
+MODEL_SIZE = "base" #"projecte-aina/faster-whisper-large-v3-ca-3catparla"
 DEVICE = "cpu"
 COMPUTE_TYPE = "int8"
 

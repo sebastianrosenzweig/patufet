@@ -35,7 +35,8 @@ def task(quit_event):
                     response = requests.post(
                         SERVER_IP_PORT,
                         data=audio_bytes,
-                        headers={'Content-Type': 'application/octet-stream'}
+                        headers={'Content-Type': 'application/octet-stream'},
+                        timeout=30
                     )
 
                     if response.status_code == 200:

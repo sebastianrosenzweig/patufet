@@ -45,6 +45,7 @@ async def receive_audio(request: Request):
     # The ReSpeaker provides 16000Hz, 16-bit (2 bytes), Mono (1 channel)
     audio_data = np.frombuffer(body, dtype=np.int16)
     audio_float = audio_data.astype(np.float32) / 32768.0
+    audio_float = audio_float[int(0.25*16000):]  # truncate audio a bit to avoid bits of the wake word leaking into transcription
 
     # Trigger transcription
     text = await asyncio.to_thread(transcribe_audio, audio_float)

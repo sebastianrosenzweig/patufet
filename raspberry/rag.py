@@ -87,7 +87,7 @@ def generate_response(transcript: str) -> str:
     if not query_ca:
         return "No entenc la pregunta. Pots repetir, si us plau?"
 
-    if query_ca == "On ets":
+    if "on ets" in query_ca.lower():
         response = "Soc a la panxa del bou, que no hi neva ni hi plou! Quan el bou farà un pet, sortirà en Patufet."
         return response
 
