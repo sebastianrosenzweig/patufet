@@ -1,0 +1,130 @@
+from typing import Optional
+from llama_cpp import Llama
+import requests
+from translation import translate
+
+MODEL_PATH = "models/qwen2.5-0.5b-instruct-fp16.gguf"
+DEVICE = "cpu"
+N_CTX = 2048
+N_THREADS = 4
+N_WIKI_PAGE_SEARCH = 1
+
+# Global variable to hold the LLM instance
+_llm: Optional[Llama] = None
+
+def get_llm_instance() -> Llama:
+    global _llm
+    if _llm is None:
+        _llm = Llama(
+            model_path=MODEL_PATH,
+            n_ctx=N_CTX,
+            n_threads=N_THREADS,
+            verbose=False
+        )
+    return _llm
+
+API = "https://en.wikipedia.org/w/api.php"
+
+HEADERS = {
+    "User-Agent": (
+        "Patufet/1.0 "
+        "(A voice agent based on Wikipedia; "
+        "contact: https://github.com/sebastianrosenzweig)"
+    )
+}
+
+def get_sources(question):
+    response = requests.get(
+        API,
+        params={
+            "action": "query",
+            "list": "search",
+            "srsearch": question,
+            "srlimit": N_WIKI_PAGE_SEARCH,
+            "format": "json",
+        },
+        headers=HEADERS,
+        timeout=20,
+    )
+    response.raise_for_status()
+    pages = response.json()["query"]["search"]
+
+    resources = ""
+
+    for page in pages:
+        title = page["title"]
+
+        response = requests.get(
+            API,
+            params={
+                "action": "query",
+                "prop": "extracts",
+                "exintro": 1,
+                "explaintext": 1,
+                "exchars": 2000,
+                "redirects": 1,
+                "titles": title,
+                "format": "json",
+            },
+            headers=HEADERS,
+            timeout=20,
+        )
+        response.raise_for_status()
+
+        article = next(
+            iter(response.json()["query"]["pages"].values())
+        )
+
+        resources = " ".join([resources, article.get("extract", "").strip()])
+
+    return resources
+
+def generate_response(transcript: str) -> str:
+    """
+    Finds relevant Wikipedia articles and generates the answer from the gathered information.
+    """
+    query_ca = transcript.strip()
+    if not query_ca:
+        return "No entenc la pregunta. Pots repetir, si us plau?"
+
+    if query_ca == "On ets":
+        response = "Soc a la panxa del bou, que no hi neva ni hi plou! Quan el bou farà un pet, sortirà en Patufet."
+        return response
+
+    # find wikipedia sources
+    query_en = translate(query_ca, "Catalan", "English")
+    context = get_sources(query_en)
+
+    # Initialize the model
+    llm_instance = get_llm_instance()
+
+    output = llm_instance.create_chat_completion(
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Answer the question using only the provided context. "
+                    "Reply in English in 1-2 short sentences. "
+                    "If the answer is not explicitly supported by the context, "
+                    "reply: I don't know. "
+                    "Do not guess."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Question: {query_en}\n\n"
+                    f"Context:\n{context}\n\n"
+                    "Answer:"
+                ),
+            },
+        ],
+        max_tokens=128,
+        temperature=0.7,
+        top_p=0.8,
+        top_k=20,
+    )
+
+    response_en = output["choices"][0]["message"]["content"].strip()
+    response_ca = translate(response_en, "English", "Catalan")
+    return response_ca if response_ca else "No he pogut generar una resposta."

@@ -1,6 +1,6 @@
 import asyncio
 from transcription import transcribe_audio
-from llm import get_llm_response
+from rag import generate_response
 from tts import synthesize
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
