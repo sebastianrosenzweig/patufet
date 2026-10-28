@@ -51,7 +51,7 @@ async def receive_audio(request: Request):
     if text:
         logger.info(f"Transcription finished: {text}")
 
-        response = await asyncio.to_thread(get_llm_response, text)
+        response = await asyncio.to_thread(generate_response, text)
         logger.info(f"Response: {response}")
 
         audio, sample_rate = synthesize(response)
