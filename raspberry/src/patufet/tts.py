@@ -1,17 +1,26 @@
-from pathlib import Path
+import logging
 
 import numpy as np
+from huggingface_hub import hf_hub_download
 from piper import PiperVoice
-import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-model = Path("models/ca_ES-upc_ona-medium.onnx")
+repo_id = "rhasspy/piper-voices"
+model_path = hf_hub_download(
+    repo_id=repo_id,
+    filename="ca/ca_ES/upc_ona/medium/ca_ES-upc_ona-medium.onnx"
+)
+_ = hf_hub_download(
+    repo_id=repo_id,
+    filename="ca/ca_ES/upc_ona/medium/ca_ES-upc_ona-medium.onnx.json"
+)
 
-voice = PiperVoice.load(str(model))
+voice = PiperVoice.load(model_path)
 sample_rate = voice.config.sample_rate
+
 
 def synthesize(text: str) -> tuple[np.ndarray, int]:
     """

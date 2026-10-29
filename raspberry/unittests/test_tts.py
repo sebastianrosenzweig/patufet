@@ -1,6 +1,8 @@
 import unittest
-from tts import synthesize
+
 import soundfile as sf
+from patufet.tts import synthesize
+
 
 class TestTTS(unittest.TestCase):
     def test_transcribe_audio_with_test_file(self):
@@ -9,6 +11,7 @@ class TestTTS(unittest.TestCase):
         )
 
         sf.write("output.wav", audio, sample_rate)
+
 
 if __name__ == "__main__":
     unittest.main()

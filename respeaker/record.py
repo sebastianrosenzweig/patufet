@@ -1,15 +1,17 @@
 import io
 import logging
-import pyaudio
 import time
-import requests
-from threading import Thread, Event
 import wave
-from respeaker import Microphone
+from threading import Thread, Event
 
+import pyaudio
+import requests
+
+from respeaker import Microphone
 
 SERVER_IP_PORT = 'http://192.168.3.126:8000/'
 loglevel = logging.DEBUG
+
 
 def task(quit_event):
     logging.getLogger().setLevel(loglevel)
@@ -91,6 +93,7 @@ def task(quit_event):
             else:
                 logging.debug('No data captured')
 
+
 def main():
     logging.basicConfig(level=loglevel)
 
@@ -105,6 +108,7 @@ def main():
             quit_event.set()
             break
     thread.join()
+
 
 if __name__ == '__main__':
     main()

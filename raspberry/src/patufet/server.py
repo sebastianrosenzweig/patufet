@@ -1,17 +1,18 @@
 import asyncio
-from transcription import transcribe_audio
-from rag import generate_response
-from tts import synthesize
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-import os
-import numpy as np
 import io
-from fastapi.responses import Response
 import logging
 import wave
+
+import numpy as np
+import uvicorn
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.responses import Response
+
+from .rag import generate_response
+from .transcription import transcribe_audio
+from .tts import synthesize
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -28,10 +29,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Ensure the data directory exists
-DATA_DIR = "data"
-if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR)
 
 @app.post("/")
 async def receive_audio(request: Request):
@@ -45,7 +42,8 @@ async def receive_audio(request: Request):
     # The ReSpeaker provides 16000Hz, 16-bit (2 bytes), Mono (1 channel)
     audio_data = np.frombuffer(body, dtype=np.int16)
     audio_float = audio_data.astype(np.float32) / 32768.0
-    audio_float = audio_float[int(0.25*16000):]  # truncate audio a bit to avoid bits of the wake word leaking into transcription
+    audio_float = audio_float[
+        int(0.25 * 16000):]  # truncate audio a bit to avoid bits of the wake word leaking into transcription
 
     # Trigger transcription
     text = await asyncio.to_thread(transcribe_audio, audio_float)
@@ -77,6 +75,6 @@ async def receive_audio(request: Request):
     # Return the success message
     return JSONResponse(content={"status": "command processed"})
 
-if __name__ == "__main__":
-    # Run the server on port 8000
+
+def main():
     uvicorn.run(app, host="0.0.0.0", port=8000)

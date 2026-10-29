@@ -1,9 +1,10 @@
-from fastapi.testclient import TestClient
-from server import app
 import os
 import wave
-import pytest
 from unittest.mock import patch
+
+import pytest
+from fastapi.testclient import TestClient
+from patufet.server import app
 
 client = TestClient(app)
 

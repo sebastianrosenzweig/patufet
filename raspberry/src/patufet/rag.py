@@ -1,27 +1,36 @@
 from typing import Optional
-from llama_cpp import Llama
-import requests
-from translation import translate
 
-MODEL_PATH = "models/qwen2.5-0.5b-instruct-fp16.gguf"
+import requests
+from huggingface_hub import hf_hub_download
+from llama_cpp import Llama
+
+from .translation import translate
+
 DEVICE = "cpu"
 N_CTX = 2048
 N_THREADS = 4
 N_WIKI_PAGE_SEARCH = 1
 
+model_path = hf_hub_download(
+    repo_id="Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+    filename="qwen2.5-0.5b-instruct-fp16.gguf"
+)
+
 # Global variable to hold the LLM instance
 _llm: Optional[Llama] = None
+
 
 def get_llm_instance() -> Llama:
     global _llm
     if _llm is None:
         _llm = Llama(
-            model_path=MODEL_PATH,
+            model_path=model_path,
             n_ctx=N_CTX,
             n_threads=N_THREADS,
             verbose=False
         )
     return _llm
+
 
 API = "https://en.wikipedia.org/w/api.php"
 
@@ -32,6 +41,7 @@ HEADERS = {
         "contact: https://github.com/sebastianrosenzweig)"
     )
 }
+
 
 def get_sources(question):
     response = requests.get(
@@ -78,6 +88,7 @@ def get_sources(question):
         resources = " ".join([resources, article.get("extract", "").strip()])
 
     return resources
+
 
 def generate_response(transcript: str) -> str:
     """
