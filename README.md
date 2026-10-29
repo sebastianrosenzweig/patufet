@@ -45,7 +45,7 @@ A Catalan text-to-speech model synthesizes the translated answer into audio, whi
 
 ## Installation
 
-Follow the installation instructions in the dedicated READMEs for each component.
+Follow the installation instructions in the dedicated READMEs for each device.
 
 ## Learnings & Future Research
 * I could not find a model for Catalan speech transcription that runs sufficiently fast on a Raspberry Pi. Existing models like https://huggingface.co/projecte-aina/faster-whisper-large-v3-ca-3catparla or https://huggingface.co/BSC-LT/whisper-bsc-large-v3-cat are too big and slow. Future research could focus on developing Catalan models for edge use cases, e.g. by adapting tiny or base whisper models.  
