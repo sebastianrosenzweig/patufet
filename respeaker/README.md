@@ -1,5 +1,7 @@
 # Installation instructions
 
+Note that this code is designed to run on a Respeaker Core 1.0 that has reached EOL and runs an old Python 2.7.9.
+
 1. Copy all files in this directory to the ReSpeaker under `/root/`
 2. Install the customised Python library:
    ```
