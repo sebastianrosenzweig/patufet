@@ -9,7 +9,7 @@ The system uses a client-server architecture, with a Raspberry Pi in the backend
 
 ## Demo
 
-The demo uses a ReSpeaker Core 1.0 as the client device to interact with the Patufet backend. 
+Click the image for watching the demo! The demo uses a ReSpeaker Core 1.0 as the client device to interact with the Patufet backend. 
 The wake word "Patufet" is recognized by the ReSpeaker using its on-board processing capabilities.
 
 <p>
