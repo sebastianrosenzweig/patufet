@@ -2,20 +2,18 @@ import asyncio
 import io
 import logging
 import wave
-
 import numpy as np
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 
 from .rag import generate_response
 from .transcription import transcribe_audio
 from .tts import synthesize
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
@@ -29,52 +27,67 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.post("/")
-async def receive_audio(request: Request):
-    # Get the raw body
-    body = await request.body()
-
+async def process_audio_request(body: bytes) -> tuple[str, str] | None:
+    """
+    Processes the raw audio data: transcribes, generates a response, and synthesizes speech.
+    Returns a tuple of (response_text, audio_bytes) if successful, else None.
+    """
     if not body:
-        return JSONResponse(content={"error": "No data received"}, status_code=400)
+        return None
 
     # Convert to numpy array
     # The ReSpeaker provides 16000Hz, 16-bit (2 bytes), Mono (1 channel)
     audio_data = np.frombuffer(body, dtype=np.int16)
     audio_float = audio_data.astype(np.float32) / 32768.0
-    audio_float = audio_float[
-        int(0.25 * 16000):]  # truncate audio a bit to avoid bits of the wake word leaking into transcription
+
+    # Truncate audio to avoid bits of the wake word leaking into transcription
+    # 0.25 * 16000 = 4000 samples
+    audio_float = audio_float[int(0.25 * 16000):]
 
     # Trigger transcription
     text = await asyncio.to_thread(transcribe_audio, audio_float)
-    if text:
-        logger.info(f"Transcription finished: {text}")
 
-        response = await asyncio.to_thread(generate_response, text)
-        logger.info(f"Response: {response}")
-
-        audio, sample_rate = synthesize(response)
-        logger.info("Synthesis finished!")
-
-        # Convert to int16 bytes
-        audio_int16 = (audio * 32768.0).astype(np.int16)
-
-        # Create WAV file in memory
-        buffer = io.BytesIO()
-        with wave.open(buffer, 'wb') as wav_file:
-            wav_file.setnchannels(1)
-            wav_file.setsampwidth(2)
-            wav_file.setframerate(sample_rate)
-            wav_file.writeframes(audio_int16.tobytes())
-
-        return Response(content=buffer.getvalue(), media_type="audio/wav")
-
-    else:
+    if not text:
         logger.info("Transcription produced no text.")
+        return None
 
-    # Return the success message
-    return JSONResponse(content={"status": "command processed"})
+    logger.info(f"Transcription finished: {text}")
 
+    # Generate response
+    response_text = await asyncio.to_thread(generate_response, text)
+    logger.info(f"Response generated: {response_text}")
+
+    # Synthesize speech
+    audio_out, sample_rate = synthesize(response_text)
+    logger.info("Synthesis finished!")
+
+    # Convert to int16 bytes
+    audio_int16 = (audio_out * 32768.0).astype(np.int16)
+
+    # Create WAV file in memory
+    buffer = io.BytesIO()
+    with wave.open(buffer, 'wb') as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(audio_int16.tobytes())
+
+    return response_text, buffer.getvalue()
+
+@app.post("/")
+async def receive_audio(request: Request):
+    body = await request.body()
+
+    if not body:
+        return JSONResponse(content={"error": "No data received"}, status_code=400)
+
+    result = await process_audio_request(body)
+
+    if result:
+        text, audio_bytes = result
+        return Response(content=audio_bytes, media_type="audio/wav")
+    else:
+        return JSONResponse(content={"status": "command processed"})
 
 def main():
     uvicorn.run(app, host="0.0.0.0", port=8000)

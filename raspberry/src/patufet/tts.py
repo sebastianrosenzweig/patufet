@@ -1,12 +1,6 @@
-import logging
-
 import numpy as np
 from huggingface_hub import hf_hub_download
 from piper import PiperVoice
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 repo_id = "rhasspy/piper-voices"
 model_path = hf_hub_download(

@@ -1,5 +1,4 @@
 from typing import Optional
-
 import requests
 from huggingface_hub import hf_hub_download
 from llama_cpp import Llama
@@ -19,7 +18,6 @@ model_path = hf_hub_download(
 # Global variable to hold the LLM instance
 _llm: Optional[Llama] = None
 
-
 def get_llm_instance() -> Llama:
     global _llm
     if _llm is None:
@@ -31,7 +29,6 @@ def get_llm_instance() -> Llama:
         )
     return _llm
 
-
 API = "https://en.wikipedia.org/w/api.php"
 
 HEADERS = {
@@ -42,53 +39,60 @@ HEADERS = {
     )
 }
 
-
-def get_sources(question):
-    response = requests.get(
-        API,
-        params={
-            "action": "query",
-            "list": "search",
-            "srsearch": question,
-            "srlimit": N_WIKI_PAGE_SEARCH,
-            "format": "json",
-        },
-        headers=HEADERS,
-        timeout=20,
-    )
-    response.raise_for_status()
-    pages = response.json()["query"]["search"]
-
-    resources = ""
-
-    for page in pages:
-        title = page["title"]
-
+def get_sources(question: str) -> str:
+    """
+    Fetches relevant information from Wikipedia based on the provided question.
+    """
+    try:
         response = requests.get(
             API,
             params={
                 "action": "query",
-                "prop": "extracts",
-                "exintro": 1,
-                "explaintext": 1,
-                "exchars": 2000,
-                "redirects": 1,
-                "titles": title,
+                "list": "search",
+                "srsearch": question,
+                "srlimit": N_WIKI_PAGE_SEARCH,
                 "format": "json",
             },
             headers=HEADERS,
             timeout=20,
         )
         response.raise_for_status()
+        pages = response.json().get("query", {}).get("search", [])
 
-        article = next(
-            iter(response.json()["query"]["pages"].values())
-        )
+        if not pages:
+            return ""
 
-        resources = " ".join([resources, article.get("extract", "").strip()])
+        resources = []
+        for page in pages:
+            title = page["title"]
+            response = requests.get(
+                API,
+                params={
+                    "action": "query",
+                    "prop": "extracts",
+                    "exintro": 1,
+                    "explaintext": 1,
+                    "exchars": 2000,
+                    "redirects": 1,
+                    "titles": title,
+                    "format": "json",
+                },
+                headers=HEADERS,
+                timeout=20,
+            )
+            response.raise_for_status()
 
-    return resources
+            page_data = response.json().get("query", {}).get("pages", {})
+            if not page_data:
+                continue
 
+            article = next(iter(page_data.values()))
+            if "extract" in article:
+                resources.append(article["extract"].strip())
+
+        return " ".join(resources)
+    except:
+        return ""
 
 def generate_response(transcript: str) -> str:
     """
@@ -99,15 +103,19 @@ def generate_response(transcript: str) -> str:
         return "No entenc la pregunta. Pots repetir, si us plau?"
 
     if "on ets" in query_ca.lower():
-        response = "Soc a la panxa del bou, que no hi neva ni hi plou! Quan el bou farà un pet, sortirà en Patufet."
-        return response
+        return "Soc a la panxa del bou, que no hi neva ni hi plou! Quan el bou farà un pet, sortirà en Patufet."
 
-    # find wikipedia sources
+    # Find wikipedia sources
     query_en = translate(query_ca, "Catalan", "English")
     context = get_sources(query_en)
 
     # Initialize the model
     llm_instance = get_llm_instance()
+
+    # If context is empty, we might want to skip the LLM or handle it gracefully
+    if not context:
+        # We still want the LLM to know it has no context
+        context = "No relevant information was found."
 
     output = llm_instance.create_chat_completion(
         messages=[

@@ -31,4 +31,4 @@ testpaths = ["unittests"]
 pythonpath = ["src"]
 
 [tool.poetry]
-package-mode = false
+packages = [{ include = "patufet", from = "src" }]
