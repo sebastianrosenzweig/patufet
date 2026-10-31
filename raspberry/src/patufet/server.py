@@ -18,19 +18,10 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Allow all origins for testing, but adjust as needed
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-async def process_audio_request(body: bytes) -> tuple[str, str] | None:
+async def process_audio_request(body: bytes) -> bytes | None:
     """
     Processes the raw audio data: transcribes, generates a response, and synthesizes speech.
-    Returns a tuple of (response_text, audio_bytes) if successful, else None.
+    Returns the generated audio response if successful, else None.
     """
     if not body:
         return None
@@ -72,7 +63,7 @@ async def process_audio_request(body: bytes) -> tuple[str, str] | None:
         wav_file.setframerate(sample_rate)
         wav_file.writeframes(audio_int16.tobytes())
 
-    return response_text, buffer.getvalue()
+    return buffer.getvalue()
 
 @app.post("/")
 async def receive_audio(request: Request):
@@ -81,10 +72,11 @@ async def receive_audio(request: Request):
     if not body:
         return JSONResponse(content={"error": "No data received"}, status_code=400)
 
-    result = await process_audio_request(body)
+    audio_bytes = await process_audio_request(body)
 
-    if result:
-        text, audio_bytes = result
+    logger.info(audio_bytes)
+
+    if audio_bytes:
         return Response(content=audio_bytes, media_type="audio/wav")
     else:
         return JSONResponse(content={"status": "command processed"})

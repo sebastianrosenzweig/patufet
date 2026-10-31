@@ -7,9 +7,9 @@ This is a proof-of-concept for a lightweight, voice-based question-answering sys
 Patufet lets you ask questions in Catalan using your voice and receive spoken answers in Catalan. The system combines open-source speech and translation models with Wikipedia retrieval and a locally running small language model (LLM). 
 The system uses a client-server architecture with a Raspberry Pi in the backend, while a client device captures audio, sends questions, and plays back the answers. To insure a certain level of privacy, all audio is processed on the Raspberry Pi and does not leave the device.
 
-Rather than delivering a ready-to-use product, the goal of this project is to explore the limits of existing voice and language processing models for Catalan and point to challenges for future research (s. Section "Learnings" below).
+Rather than delivering a ready-to-use product, the goal of this project is to explore the limits of existing small voice and language processing models for Catalan and point to challenges for future research (s. Section "Learnings" below).
 
-[Find out who is Patufet here or ask him :-)](https://en.wikipedia.org/wiki/Patufet)
+[Find out who is Patufet here :-)](https://en.wikipedia.org/wiki/Patufet)
 
 ## Demo
 
@@ -54,7 +54,7 @@ Follow the installation instructions in the dedicated READMEs for each device.
 ## Learnings & Future Research
 * Good news: Processing voice and language in Catalan on a Raspberry Pi is possible with SOTA models, thanks to the great work of the Barcelona Supercomputing Center, the cooperative Col·lectivaT, Softcatalà, and the AINA project! However, the processing is still too slow for a usable commercial product (s. bottlenecks below).
 * I could not find a model for Catalan speech transcription that runs sufficiently fast on a Raspberry Pi. Existing models like https://huggingface.co/projecte-aina/faster-whisper-large-v3-ca-3catparla or https://huggingface.co/BSC-LT/whisper-bsc-large-v3-cat are too big for the memory and too slow. Future research could focus on developing Catalan models for edge use cases, e.g. by adapting tiny or base whisper models. The currently used whisper base model makes many mistakes in Catalan but seems to offer the best compromise between transcription speed and quality at the moment. 
-* The translation and answering in English is unfortunately (still) necessary since Qwen or other small LLMs produce lots of errors when working with Catalan text. Future research could focus on adapting tiny LLMs for Catalan text input and output.
+* The workaround to do RAG in English instead of Catalan is unfortunately (still) necessary since Qwen or other small LLMs produce lots of errors when working with Catalan text. Future research could focus on adapting tiny LLMs for Catalan text input and output to reduce errors.
 
 ## License
 MIT
