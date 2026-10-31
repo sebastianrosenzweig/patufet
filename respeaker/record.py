@@ -42,7 +42,7 @@ def task(quit_event):
                     logging.debug('Error sending to server: %s' % str(e))
                     continue
 
-                if response.status_code == 200:
+                if response.status_code == 200 and response.content:
                     logging.debug('Server: Command processed')
                     buffer = io.BytesIO(response.content)
                     wav_file = wave.open(buffer, 'rb')

@@ -74,8 +74,6 @@ async def receive_audio(request: Request):
 
     audio_bytes = await process_audio_request(body)
 
-    logger.info(audio_bytes)
-
     if audio_bytes:
         return Response(content=audio_bytes, media_type="audio/wav")
     else:
