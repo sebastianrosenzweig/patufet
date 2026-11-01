@@ -46,7 +46,6 @@ async def process_audio_request(body: bytes) -> bytes | None:
 
     # Generate response
     response_text = await asyncio.to_thread(generate_response, text)
-    logger.info(f"Response generated: {response_text}")
 
     # Synthesize speech
     audio_out, sample_rate = synthesize(response_text)

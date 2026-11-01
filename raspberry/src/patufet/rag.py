@@ -112,6 +112,7 @@ def generate_response(transcript: str) -> str:
 
     # Find wikipedia sources
     query_en = translate(query_ca, "Catalan", "English")
+    logger.info(f"English query: {query_en}")
     context = get_sources(query_en)
 
     # Initialize the model
@@ -150,5 +151,7 @@ def generate_response(transcript: str) -> str:
     )
 
     response_en = output["choices"][0]["message"]["content"].strip()
+    logger.info(f"English response: {response_en}")
     response_ca = translate(response_en, "English", "Catalan")
+    logger.info(f"Catalan response: {response_ca}")
     return response_ca if response_ca else "No he pogut generar una resposta."
