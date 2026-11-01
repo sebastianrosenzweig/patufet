@@ -2,9 +2,9 @@
   Patufet <img src="assets/patufet.png" alt="Patufet" width="25"> — A Tiny Catalan Voice Q&A System
 </h1>
 
-This is a proof-of-concept for a lightweight, voice-based question-answering system in Catalan, powered by Retrieval-Augmented Generation (RAG) and designed to run on a Raspberry Pi.
+This is a proof-of-concept for a lightweight, voice-based question-answering system in Catalan designed to run on a Raspberry Pi.
 
-Patufet lets you ask questions in Catalan using your voice and receive spoken answers in Catalan. The system combines open-source speech and translation models with Wikipedia retrieval and a locally running small language model (LLM). 
+Patufet lets you ask questions in Catalan using your voice and receive spoken answers in Catalan. The system combines open-source speech and translation models with a Retrieval-Augmented Generation (RAG) pipeline based on a locally running small language model (LLM) and Wikipedia retrieval. 
 It uses a client-server architecture with a Raspberry Pi in the backend, while a client device captures audio, sends questions, and plays back the answers.
 
 The system is designed to minimise external data sharing, as all voice processing and AI inference take place locally. 
