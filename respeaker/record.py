@@ -35,7 +35,7 @@ def task(quit_event):
                         SERVER_IP_PORT,
                         data=audio_bytes,
                         headers={'Content-Type': 'application/octet-stream'},
-                        timeout=60
+                        timeout=180
                     )
 
                 except Exception as e:

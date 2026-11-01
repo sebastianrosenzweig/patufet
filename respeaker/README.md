@@ -14,5 +14,6 @@ Note the ssh command for this device: `ssh -o HostKeyAlgorithms=+ssh-rsa root@<I
    cp /root/record /etc/init.d/
    chmod +x /etc/init.d/record
    /etc/init.d/record enable
+   /etc/init.d/mopidy disable
    ```
 4. Reboot

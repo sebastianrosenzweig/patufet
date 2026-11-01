@@ -1,9 +1,13 @@
+import logging
 from typing import Optional
+
 import requests
 from huggingface_hub import hf_hub_download
 from llama_cpp import Llama
 
 from .translation import translate
+
+logger = logging.getLogger(__name__)
 
 DEVICE = "cpu"
 N_CTX = 2048
@@ -64,6 +68,7 @@ def get_sources(question: str) -> str:
 
         resources = []
         for page in pages:
+            logger.info(f"Fetching Wikipedia page: {page['title']}")
             title = page["title"]
             response = requests.get(
                 API,
