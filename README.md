@@ -4,11 +4,11 @@
 
 This is a proof-of-concept for a lightweight, voice-based question-answering system in Catalan designed to run on a Raspberry Pi.
 
-Patufet lets you ask questions in Catalan using your voice and receive spoken answers in Catalan. The system combines open-source speech and translation models with a Retrieval-Augmented Generation (RAG) pipeline based on a locally running small language model (LLM) and Wikipedia retrieval. 
+Patufet lets you ask questions in Catalan using your voice and receive spoken answers in Catalan. The system combines open-source speech and translation models with a Retrieval-Augmented Generation (RAG) pipeline consisting of a locally running small language model (LLM) and Wikipedia retrieval. 
 It uses a client-server architecture with a Raspberry Pi in the backend, while a client device captures audio, sends questions, and plays back the answers.
 
 The system is designed to minimise external data sharing, as all voice processing and AI inference take place locally. 
-The only exception is the Wikipedia RAG component, which sends a transcript of the user question to Wikipedia to retrieve relevant information. 
+The only exception is the RAG component, which sends a transcript of the user question to Wikipedia to retrieve relevant information. 
 No audio recordings or full conversation history are shared.
 
 Rather than delivering a ready-to-use product, the goal of this project is to explore the limits of existing small voice and language processing models for Catalan and point to challenges for future research (s. Section "Learnings" below).
@@ -56,12 +56,20 @@ A Catalan text-to-speech model synthesizes the translated answer into audio, whi
 Follow the installation instructions in the dedicated READMEs for each device.
 
 ## Learnings & Future Research
-* Good news: Processing voice and language in Catalan on a Raspberry Pi is possible with SOTA models, thanks to the great work of the Barcelona Supercomputing Center, the cooperative Col·lectivaT, Softcatalà, and the AINA project! However, the processing is still too slow for a usable commercial product (s. bottlenecks below).
-* I could not find a model for Catalan speech transcription that runs sufficiently fast on a Raspberry Pi. Existing models like https://huggingface.co/projecte-aina/faster-whisper-large-v3-ca-3catparla or https://huggingface.co/BSC-LT/whisper-bsc-large-v3-cat don't fit in memory and are too slow. Future research could focus on developing Catalan models for edge use cases, e.g. by adapting tiny or base whisper models. The currently used whisper base model makes many mistakes in Catalan but seems to offer the best compromise between transcription speed and quality at the moment. 
-* The workaround to do RAG in English instead of Catalan is unfortunately (still) necessary since Qwen or other small LLMs produce lots of errors when working with Catalan text. Future research could focus on adapting tiny LLMs for Catalan text input and output to reduce errors.
+* Good news: Processing voice and language in Catalan on a Raspberry Pi is possible with SOTA models, thanks to the great work of the Barcelona Supercomputing Center, the cooperative Col·lectivaT, the Softcatalà organization, and the AINA project!
+* Not so good news: With the current model stack, processing voice requests does often take more than 30 seconds which is too slow for practical use (s. identified  bottlenecks below).
+* One of the bottlenecks is the speech transcription. Existing models for Catalan like https://huggingface.co/projecte-aina/faster-whisper-large-v3-ca-3catparla or https://huggingface.co/BSC-LT/whisper-bsc-large-v3-cat don't fit in memory and are too slow. 
+The currently used whisper base model makes many mistakes in Catalan but seems to offer the best compromise between transcription speed and quality at the moment. 
+Future research could focus on developing Catalan models for edge use cases, e.g. by adapting tiny or base whisper models.
+* Another bottleneck is the LLM for answer generation. Unfortunately, I couldn't find any small LLM that was designed for Catalan language processing.
+Qwen or other small LLMs produce still lots of errors when working with Catalan text.
+Therefore, I came up with the suboptimal workaround to do RAG in English instead of Catalan. 
+Future research could focus on adapting tiny LLMs for Catalan text input and output to reduce errors.
 
 ## License
 MIT
+
+Made with :heart: for Catalonia, powered by Claude Code running locally with Ollama and Gemma 4.
 
 ## Visca!
 
